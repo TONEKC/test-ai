@@ -10,7 +10,9 @@ function getSupabaseConfig() {
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!url || !anonKey) {
-    return null
+    throw new Error(
+      'Supabase storage is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.',
+    )
   }
 
   return {
@@ -21,16 +23,6 @@ function getSupabaseConfig() {
 
 export async function uploadRegistrationFiles(files: File[]) {
   const supabase = getSupabaseConfig()
-
-  if (!supabase) {
-    return files.map<FileAttachmentInput>((file) => ({
-      fileName: file.name,
-      storageKey: `local-test/${crypto.randomUUID()}-${file.name}`,
-      url: `local-test://${file.name}`,
-      mimeType: file.type || 'application/octet-stream',
-      sizeBytes: file.size,
-    }))
-  }
 
   const uploaded: FileAttachmentInput[] = []
 
