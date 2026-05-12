@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 
 import { verifyPassword } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
 import { createUserSessionToken, userSessionCookie } from '@/lib/session'
 import { userLoginSchema } from '@/lib/validations'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function POST(request: Request) {
   const payload: unknown = await request.json().catch(() => null)
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
   }
 
   try {
+    const { prisma } = await import('@/lib/prisma')
     const registration = await prisma.eventRegistration.findUnique({
       where: { referenceCode: parsed.data.referenceCode.toUpperCase() },
       include: { user: true },

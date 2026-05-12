@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 
 import { verifyAdminCredentials } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function POST(request: Request) {
   const payload = (await request.json().catch(() => null)) as {
@@ -39,6 +40,8 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
+  const { prisma } = await import('@/lib/prisma')
+
   const registrations = await prisma.eventRegistration.findMany({
     orderBy: { submittedAt: 'desc' },
     include: {

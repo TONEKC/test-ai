@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
-import { prisma } from '@/lib/prisma'
 import {
   getUserSessionCookieName,
   verifyUserSessionToken,
@@ -9,6 +8,8 @@ import {
 import { updateRegistrationSchema } from '@/lib/validations'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 interface RouteContext {
   params: {
@@ -40,6 +41,8 @@ export async function GET(_request: Request, context: RouteContext) {
       { status: 401 },
     )
   }
+
+  const { prisma } = await import('@/lib/prisma')
 
   const registration = await prisma.eventRegistration.findUnique({
     where: { id: context.params.id },
@@ -102,6 +105,7 @@ export async function PUT(request: Request, context: RouteContext) {
   }
 
   const input = parsed.data
+  const { prisma } = await import('@/lib/prisma')
 
   const registration = await prisma.$transaction(async (tx) => {
     await tx.registrationDocument.updateMany({

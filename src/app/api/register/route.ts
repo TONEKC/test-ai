@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server'
 
 import { hashPassword } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
 import { generateReferenceCode } from '@/lib/reference-code'
 import { registrationSchema } from '@/lib/validations'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
-async function createUniqueReferenceCode() {
+async function createUniqueReferenceCode(
+  prisma: Awaited<typeof import('@/lib/prisma')>['prisma'],
+) {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const referenceCode = generateReferenceCode()
     const existing = await prisma.eventRegistration.findUnique({
@@ -43,8 +46,9 @@ export async function POST(request: Request) {
 
   const input = parsed.data
   try {
+    const { prisma } = await import('@/lib/prisma')
     const passwordHash = await hashPassword(input.password)
-    const referenceCode = await createUniqueReferenceCode()
+    const referenceCode = await createUniqueReferenceCode(prisma)
 
     const registration = await prisma.$transaction(async (tx) => {
       const user = await tx.user.upsert({
