@@ -30,13 +30,22 @@ export async function POST(request: Request) {
     )
   }
 
-  return NextResponse.json({
-    success: true,
-    data: {
-      role: 'ADMIN',
-      message: 'Admin credentials accepted.',
+  return NextResponse.json(
+    {
+      success: true,
+      data: {
+        role: 'ADMIN',
+        message: 'Admin credentials accepted.',
+      },
     },
-  })
+    {
+      headers: {
+        'Set-Cookie': `ers_admin_session=1; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400; ${
+          process.env.NODE_ENV === 'production' ? 'Secure; ' : ''
+        }`,
+      },
+    },
+  )
 }
 
 export async function GET() {

@@ -2,16 +2,32 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function AdminPage() {
-  const { prisma } = await import('@/lib/prisma')
+  let registrations: Array<{
+    id: string
+    referenceCode: string
+    attendeeName: string
+    attendeeEmail: string
+    status: string
+    submittedAt: Date
+    documents: unknown[]
+  }> = []
+  let databaseError = ''
 
-  const registrations = await prisma.eventRegistration.findMany({
-    orderBy: { submittedAt: 'desc' },
-    include: {
-      documents: {
-        where: { status: 'ACTIVE' },
+  try {
+    const { prisma } = await import('@/lib/prisma')
+
+    registrations = await prisma.eventRegistration.findMany({
+      orderBy: { submittedAt: 'desc' },
+      include: {
+        documents: {
+          where: { status: 'ACTIVE' },
+        },
       },
-    },
-  })
+    })
+  } catch (caught) {
+    databaseError =
+      caught instanceof Error ? caught.message : 'Unable to load registrations.'
+  }
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-7xl px-6 py-10">
@@ -28,6 +44,12 @@ export default async function AdminPage() {
           </p>
         </div>
       </header>
+
+      {databaseError ? (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          Database error: {databaseError}
+        </div>
+      ) : null}
 
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
