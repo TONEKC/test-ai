@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/lib/prisma";
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface RouteContext {
   params: {
@@ -73,6 +72,8 @@ function createNameTagPdf(registration: {
 }
 
 export async function GET(_request: Request, context: RouteContext) {
+  const { prisma } = await import("@/lib/prisma");
+
   const registration = await prisma.eventRegistration.findUnique({
     where: { id: context.params.id },
   });
