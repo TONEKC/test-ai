@@ -1,12 +1,26 @@
 import { NextResponse } from 'next/server'
 
-import { verifyAdminCredentials } from '@/lib/auth'
+import { hasAdminCredentialsConfigured, verifyAdminCredentials } from '@/lib/auth'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export async function POST(request: Request) {
+  if (!hasAdminCredentialsConfigured()) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'ADMIN_AUTH_NOT_CONFIGURED',
+          message:
+            'Admin login is not configured. Set ADMIN_USERNAME and ADMIN_PASSWORD in Vercel environment variables.',
+        },
+      },
+      { status: 500 },
+    )
+  }
+
   const payload = (await request.json().catch(() => null)) as {
     username?: string
     password?: string
