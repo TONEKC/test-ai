@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum RegistrationStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum DocumentStatus {
+  ACTIVE
+  REPLACED
+  DELETED
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(160)
+  email        String   @unique @db.VarChar(255)
+  phone        String?  @db.VarChar(40)
+  passwordHash String   @db.VarChar(255)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  registrations EventRegistration[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model EventRegistration {
+  id             String             @id @default(uuid()) @db.Uuid
+  userId         String             @db.Uuid
+  referenceCode  String             @unique @db.VarChar(32)
+  eventName      String             @db.VarChar(180)
+  attendeeName   String             @db.VarChar(160)
+  attendeeEmail  String             @db.VarChar(255)
+  attendeePhone  String?            @db.VarChar(40)
+  organization   String?            @db.VarChar(180)
+  status         RegistrationStatus @default(SUBMITTED)
+  submittedAt    DateTime           @default(now())
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  documents RegistrationDocument[]
+
+  @@index([userId])
+  @@index([referenceCode])
+  @@index([status, submittedAt])
+  @@index([attendeeEmail])
+  @@map("event_registrations")
+}
+
+model RegistrationDocument {
+  id             String         @id @default(uuid()) @db.Uuid
+  registrationId String         @db.Uuid
+  fileName       String         @db.VarChar(255)
+  storageKey     String         @unique @db.VarChar(512)
+  url            String         @db.VarChar(1024)
+  mimeType       String         @db.VarChar(120)
+  sizeBytes      Int
+  status         DocumentStatus @default(ACTIVE)
+  replacedById   String?        @db.Uuid
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  registration EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([registrationId])
+  @@index([status])
+  @@map("registration_documents")
+}
