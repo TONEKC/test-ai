@@ -1,8 +1,8 @@
+export const dynamic = "force-dynamic";
 import { jsPDF } from "jspdf";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
-export const dynamic = "force-dynamic";
 
 export const runtime = "nodejs";
 
