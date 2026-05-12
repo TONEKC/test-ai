@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 
 export function verifyAdminCredentials(username: string, password: string) {
   return (

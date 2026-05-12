@@ -8,6 +8,27 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+function getErrorMessage(caught: unknown) {
+  if (caught instanceof Error) {
+    return caught.message
+  }
+
+  return 'Unknown server error.'
+}
+
+function getPrismaErrorCode(caught: unknown) {
+  if (
+    caught &&
+    typeof caught === 'object' &&
+    'code' in caught &&
+    typeof caught.code === 'string'
+  ) {
+    return caught.code
+  }
+
+  return null
+}
+
 async function createUniqueReferenceCode(
   prisma: Awaited<typeof import('@/lib/prisma')>['prisma'],
 ) {
@@ -105,14 +126,17 @@ export async function POST(request: Request) {
     )
   } catch (caught) {
     console.error(caught)
+    const prismaCode = getPrismaErrorCode(caught)
+    const message = getErrorMessage(caught)
 
     return NextResponse.json(
       {
         success: false,
         error: {
-          code: 'INTERNAL_ERROR',
-          message:
-            'Registration could not be saved. Please verify the database connection and try again.',
+          code: prismaCode ?? 'INTERNAL_ERROR',
+          message: prismaCode
+            ? `Database error ${prismaCode}: ${message}`
+            : message,
         },
       },
       { status: 500 },
