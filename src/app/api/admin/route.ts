@@ -67,3 +67,19 @@ export async function GET() {
     },
   })
 }
+
+export async function DELETE() {
+  return NextResponse.json(
+    {
+      success: true,
+      data: {
+        message: 'Admin session cleared.',
+      },
+    },
+    {
+      headers: {
+        'Set-Cookie': 'ers_admin_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+      },
+    },
+  )
+}
